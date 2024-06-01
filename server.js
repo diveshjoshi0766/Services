@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const cron = require('node-cron');
+const fetch = require('node-fetch');
 
 const app = express();
 
@@ -58,6 +60,21 @@ app.post('/send-email', (req, res) => {
 app.get('/heartbeat', (req, res) => {
   console.log("App is up!");
   res.status(200).send('App is up!');
+});
+
+cron.schedule('*/5 * * * *', () => {
+  console.log('Running a task every 5 minutes');
+
+  fetch(`https://services-o7mq.onrender.com/heartbeat`, {
+    method: 'GET'
+  })
+    .then(response => response.text())
+    .then(data => {
+      console.log('Response from /trigger-endpoint:', data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
 });
 
 // Start server
