@@ -39,6 +39,10 @@ app.post('/send-email', (req, res) => {
   });
 });
 
+app.get('/heartbeat', (req, res) => {
+  res.status(200).send('App is up!');
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
