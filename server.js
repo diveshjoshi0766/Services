@@ -13,19 +13,33 @@ const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
     user: 'diveshjoshi401@gmail.com',
-    pass: 'vdhr lxwe qows tlex'
+    pass: 'vdhr lxwe qows tlex' // Use environment variables for security in a real application
   }
 });
 
 // Routes
 app.post('/send-email', (req, res) => {
-  const { to, subject, text } = req.body;
+  const data = req.body;
+
+  // Extract necessary fields for email
+  const to = data.to;
+  const subject = data.subject;
+
+  // Remove 'to' and 'subject' from the data object
+  delete data.to;
+  delete data.subject;
+
+  // Convert remaining data to a readable format for the email body
+  let emailText = '';
+  for (const key in data) {
+    emailText += `${key}: ${data[key]}\n`;
+  }
 
   const mailOptions = {
     from: 'diveshjoshi401@gmail.com',
     to: to,
     subject: subject,
-    text: text
+    text: emailText
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -40,6 +54,7 @@ app.post('/send-email', (req, res) => {
 });
 
 app.get('/heartbeat', (req, res) => {
+  console.log("App is up!");
   res.status(200).send('App is up!');
 });
 
