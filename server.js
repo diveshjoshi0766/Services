@@ -38,15 +38,13 @@ const transporter = nodemailer.createTransport({
 });
 
 // Routes
-app.post('/send-email', upload.single('file'), (req, res) => {
+app.post('/send-email', (req, res) => {
   const data = req.body;
-  const file = req.file;
-
-  const to = data.to;
-  const subject = data.subject;
+  const { to, subject, filePath } = data;
 
   delete data.to;
   delete data.subject;
+  delete data.filePath;
 
   let emailText = '';
   for (const key in data) {
@@ -58,7 +56,7 @@ app.post('/send-email', upload.single('file'), (req, res) => {
     to: to,
     subject: subject,
     text: emailText,
-    attachments: file ? [{ filename: file.filename, path: file.path }] : []
+    attachments: filePath ? [{ path: filePath }] : []
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -71,6 +69,15 @@ app.post('/send-email', upload.single('file'), (req, res) => {
     }
   });
 });
+
+app.post('/upload-file', upload.single('file'), (req, res) => {
+  const file = req.file;
+  if (!file) {
+    return res.status(400).send('No file uploaded');
+  }
+  res.status(200).json({ message: 'File uploaded successfully', filePath: file.path });
+});
+
 
 app.get('/heartbeat', (req, res) => {
   console.log("App is up!");
