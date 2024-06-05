@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const cron = require('node-cron');
 const fetch = require('node-fetch');
 
@@ -13,13 +14,18 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
 // Multer setup for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/')
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
   }
 });
 
@@ -38,6 +44,14 @@ const transporter = nodemailer.createTransport({
 });
 
 // Routes
+app.post('/upload-file', upload.single('file'), (req, res) => {
+  const file = req.file;
+  if (!file) {
+    return res.status(400).send('No file uploaded');
+  }
+  res.status(200).json({ message: 'File uploaded successfully', filePath: file.path });
+});
+
 app.post('/send-email', (req, res) => {
   const data = req.body;
   const { to, subject, filePath } = data;
@@ -68,14 +82,6 @@ app.post('/send-email', (req, res) => {
       res.status(200).send('Email sent successfully');
     }
   });
-});
-
-app.post('/upload-file', upload.single('file'), (req, res) => {
-  const file = req.file;
-  if (!file) {
-    return res.status(400).send('No file uploaded');
-  }
-  res.status(200).json({ message: 'File uploaded successfully', filePath: file.path });
 });
 
 
