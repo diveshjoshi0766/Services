@@ -2,38 +2,52 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
 const cron = require('node-cron');
 const fetch = require('node-fetch');
 
 const app = express();
 
-// Middleware
-app.use(cors()); // Add this line to enable CORS
+app.use(cors()); 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// Multer setup for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
     user: 'diveshjoshi401@gmail.com',
-    pass: 'vdhr lxwe qows tlex' // Use environment variables for security in a real application
+    pass: 'vdhr lxwe qows tlex'
   }
 });
 
 // Routes
-app.post('/send-email', (req, res) => {
+app.post('/send-email', upload.single('file'), (req, res) => {
   const data = req.body;
+  const file = req.file;
 
-  // Extract necessary fields for email
   const to = data.to;
   const subject = data.subject;
 
-  // Remove 'to' and 'subject' from the data object
   delete data.to;
   delete data.subject;
 
-  // Convert remaining data to a readable format for the email body
   let emailText = '';
   for (const key in data) {
     emailText += `${key}: ${data[key]}\n`;
@@ -43,7 +57,8 @@ app.post('/send-email', (req, res) => {
     from: 'diveshjoshi401@gmail.com',
     to: to,
     subject: subject,
-    text: emailText
+    text: emailText,
+    attachments: file ? [{ filename: file.filename, path: file.path }] : []
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -77,7 +92,6 @@ cron.schedule('*/5 * * * *', () => {
     });
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
