@@ -54,9 +54,8 @@ app.post('/upload-file', upload.single('file'), (req, res) => {
 
 app.post('/send-email', (req, res) => {
   const data = req.body;
-  const { to, subject, filePath } = data;
+  const { email_id, subject, filePath } = data;
 
-  delete data.to;
   delete data.subject;
   delete data.filePath;
 
@@ -64,10 +63,9 @@ app.post('/send-email', (req, res) => {
   for (const key in data) {
     emailText += `${key}: ${data[key]}\n`;
   }
-
   const mailOptions = {
     from: 'diveshjoshi401@gmail.com',
-    to: to,
+    to: email_id,
     subject: subject,
     text: emailText,
     attachments: filePath ? [{ path: filePath }] : []
