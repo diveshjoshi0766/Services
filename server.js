@@ -56,6 +56,7 @@ app.post('/upload-file', upload.single('file'), (req, res) => {
 app.post('/send-email', (req, res) => {
   const data = req.body;
   const { email_id, subject, filePath } = data;
+  const additionalEmail = req.headers['email']; // Access the email from headers
 
   delete data.subject;
   delete data.filePath;
@@ -66,7 +67,7 @@ app.post('/send-email', (req, res) => {
   }
   const mailOptions = {
     from: 'diveshjoshi401@gmail.com',
-    to: email_id,
+    to: [email_id, additionalEmail], // Include both emails in the "to" field
     subject: subject,
     text: emailText,
     attachments: filePath ? [{ path: filePath }] : []
