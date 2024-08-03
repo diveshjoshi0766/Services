@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const cron = require('node-cron');
 const fetch = require('node-fetch');
+require('dotenv').config();
 
 const app = express();
 
@@ -38,8 +39,8 @@ const upload = multer({
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
-    user: 'diveshjoshi401@gmail.com',
-    pass: 'vdhr lxwe qows tlex'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
