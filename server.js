@@ -55,21 +55,26 @@ app.post('/upload-file', upload.single('file'), (req, res) => {
 
 app.post('/send-email', (req, res) => {
   const data = req.body;
-  const { email_id, subject, filePath } = data;
-  const additionalEmail = req.headers['email']; // Access the email from headers
+  const { email_id, subject, filePath, htmlContent } = data;
+  const additionalEmail = req.headers['email']; 
 
   delete data.subject;
   delete data.filePath;
+  delete data.htmlContent; 
 
   let emailText = '';
-  for (const key in data) {
-    emailText += `${key}: ${data[key]}\n`;
+  if (!htmlContent) {
+    for (const key in data) {
+      emailText += `${key}: ${data[key]}\n`;
+    }
   }
+
   const mailOptions = {
     from: 'diveshjoshi401@gmail.com',
-    to: [email_id, additionalEmail], // Include both emails in the "to" field
+    to: [email_id, additionalEmail], 
     subject: subject,
-    text: emailText,
+    text: !htmlContent ? emailText : undefined,
+    html: htmlContent || undefined, 
     attachments: filePath ? [{ path: filePath }] : []
   };
 
@@ -83,7 +88,6 @@ app.post('/send-email', (req, res) => {
     }
   });
 });
-
 
 app.get('/heartbeat', (req, res) => {
   console.log("App is up!");
